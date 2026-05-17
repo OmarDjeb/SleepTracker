@@ -1,0 +1,134 @@
+<%- include('partials/header') %>
+
+<div class="container">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Dashboard Sonno</h2>
+
+        <a href="/logout" class="btn btn-danger">
+            Logout
+        </a>
+    </div>
+
+    <!-- FORM INSERIMENTO -->
+    <div class="card shadow mb-4">
+        <div class="card-body">
+
+            <h4 class="mb-3">Aggiungi dati sonno</h4>
+            <% if (error) { %>
+                <div class="alert alert-danger">
+                    <%= error %>
+                </div>
+            <% } %>
+            <form action="/sleep" method="POST">
+
+                <div class="mb-3">
+                    <label>Ore dormite (es: 7.5)</label>
+                    <input type="text" name="hours" class="form-control" placeholder="es. 7.5" required>
+                </div>
+
+                <div class="mb-3">
+                    <label>Data (es: 2026-05-17)</label>
+                    <input type="text" name="date" class="form-control" placeholder="YYYY-MM-DD" required>
+                </div>
+
+                <button class="btn btn-primary">
+                    Salva
+                </button>
+
+            </form>
+
+        </div>
+    </div>
+
+    <!-- TABELLA -->
+    <div class="card shadow mb-4">
+        <div class="card-body">
+
+            <h4 class="mb-3">Storico Sonno</h4>
+
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Ore</th>
+                        <th>Qualità</th>
+                        <th>Data</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                <% sleepData.forEach(item => { %>
+                    <tr>
+                        <td><%= item.hours %></td>
+                        <td><%= item.quality %></td>
+                        <td><%= item.date ? item.date.toLocaleDateString() : '' %></td>
+                    </tr>
+                <% }) %>
+                </tbody>
+
+            </table>
+
+        </div>
+    </div>
+
+    <!-- GRAFICO -->
+    <div class="card shadow mb-4">
+        <div class="card-body">
+
+            <h4>Ultimi dati</h4>
+
+            <div id="sleepChart" style="width: 100%; height: 400px;"></div>
+
+        </div>
+    </div>
+
+</div>
+
+<!-- DATI DAL SERVER -->
+<script id="chart-data" type="application/json"><%- JSON.stringify(chartData || { labels: ["Test"], values: [8] }) %></script>
+
+<!-- ECHARTS -->
+<script src="https://cdn.jsdelivr.net/npm/echarts/dist/echarts.min.js"></script>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    const chartData = JSON.parse(
+        document.getElementById('chart-data').textContent
+    );
+
+    const chartDom = document.getElementById('sleepChart');
+    const myChart = echarts.init(chartDom);
+
+    const option = {
+        title: {
+            text: 'Ultimi dati'
+        },
+        tooltip: {
+            trigger: 'axis'
+        },
+        xAxis: {
+            type: 'category',
+            data: chartData.labels
+        },
+        yAxis: {
+            type: 'value'
+        },
+        series: [{
+            name: 'Ore di sonno',
+            type: 'line',
+            data: chartData.values,
+            smooth: true
+        }]
+    };
+
+    myChart.setOption(option);
+
+    window.addEventListener("resize", () => {
+        myChart.resize();
+    });
+
+});
+</script>
+
+<%- include('partials/footer') %>
