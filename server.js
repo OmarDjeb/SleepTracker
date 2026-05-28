@@ -106,7 +106,7 @@ app.post('/login', async (req, res) => {
         const { username, password } = req.body;
 
         if (!username || !password) {
-            return res.send("Dati mancanti");
+            return res.send("Username o password mancanti");
         }
 
         const user = await User.findOne({ username });
@@ -116,7 +116,7 @@ app.post('/login', async (req, res) => {
         }
 
         if (!user.password) {
-            return res.send("Password utente corrotta nel DB");
+            return res.send("Password mancante nel DB");
         }
 
         const validPassword = await bcrypt.compare(password, user.password);
@@ -134,7 +134,6 @@ app.post('/login', async (req, res) => {
         res.status(500).send("Errore server login");
     }
 });
-
 
 app.get('/dashboard', isAuthenticated, async (req, res) => {
 
