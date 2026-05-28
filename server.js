@@ -100,23 +100,39 @@ app.get('/login', (req, res) => {
 
 
 app.post('/login', async (req, res) => {
-    const { username, password } = req.body;
+    try {
+        console.log("BODY:", req.body);
 
-    const user = await User.findOne({ username });
+        const { username, password } = req.body;
 
-    if(!user) {
-        return res.send('Utente non trovato');
+        if (!username || !password) {
+            return res.send("Dati mancanti");
+        }
+
+        const user = await User.findOne({ username });
+
+        if (!user) {
+            return res.send("Utente non trovato");
+        }
+
+        if (!user.password) {
+            return res.send("Password utente corrotta nel DB");
+        }
+
+        const validPassword = await bcrypt.compare(password, user.password);
+
+        if (!validPassword) {
+            return res.send("Password errata");
+        }
+
+        req.session.userId = user._id;
+
+        res.redirect('/dashboard');
+
+    } catch (err) {
+        console.log("LOGIN ERROR:", err);
+        res.status(500).send("Errore server login");
     }
-
-    const validPassword = await bcrypt.compare(password, user.password);
-
-    if(!validPassword) {
-        return res.send('Password errata');
-    }
-
-    req.session.userId = user._id;
-
-    res.redirect('/dashboard');
 });
 
 
@@ -254,5 +270,5 @@ app.get('/logout', (req, res) => {
 });
 
 app.listen(process.env.PORT || 3000, () => {
-    console.log(`Server avviato sulla porta ${process.env.PORT || 3000}`);
+    console.log(`Server avviato su http://localhost:${process.env.PORT || 3000}`);
 });
